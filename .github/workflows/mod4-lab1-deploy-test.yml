@@ -47,13 +47,12 @@ jobs:
       - name: Pull a sample image from Docker hub
         uses: docker/build-push-action@v6
         with:
-          pull: true
-          tags: docker.io/library/nginx:latest
+          tags: nginx:latest
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'docker.io/library/nginx:latest'
+          image-ref: 'nginx:latest'
           exit-code: '1'
           ignore-unfixed: true
           vuln-type: 'os,library'
