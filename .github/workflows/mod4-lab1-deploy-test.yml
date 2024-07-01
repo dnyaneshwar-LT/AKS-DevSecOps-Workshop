@@ -44,11 +44,12 @@ jobs:
       # the build and push of developed code would be part of a controlled workflow. 
       # The intention here is to show how environment variables and secrets work. 
       # So we will simplify the process. 
-      - name: Pull a sample image from Docker hub to ACR
-        run: |
-          az acr import --name ${{ env.TEST_AZURE_CONTAINER_REGISTRY }} --source docker.io/library/nginx:latest --image nginx:latest -g ${{ env.TEST_RESOURCE_GROUP }}
-        continue-on-error: true
-      # Builds and pushes an image up to your Azure Container Registry
+      - name: Pull a sample image from Docker hub
+        uses: docker/build-push-action@v6
+        with:
+          pull: true
+          tags: docker.io/library/nginx:latest
+
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
@@ -64,6 +65,12 @@ jobs:
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: 'trivy-results.sarif'
+        
+      - name: Push Image to ACR
+        run: |
+          az acr import --name ${{ env.TEST_AZURE_CONTAINER_REGISTRY }} --source nginx:latest --image nginx:latest -g ${{ env.TEST_RESOURCE_GROUP }}
+        continue-on-error: true
+      # Builds and pushes an image up to your Azure Container Registry
           
       - name: Build and push image to ACR
         run: | 
