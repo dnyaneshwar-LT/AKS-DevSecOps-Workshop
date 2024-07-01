@@ -49,6 +49,23 @@ jobs:
           az acr import --name ${{ env.TEST_AZURE_CONTAINER_REGISTRY }} --source docker.io/library/nginx:latest --image nginx:latest -g ${{ env.TEST_RESOURCE_GROUP }}
         continue-on-error: true
       # Builds and pushes an image up to your Azure Container Registry
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'docker.io/library/nginx:latest'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          format: 'template'
+          template: '@/contrib/sarif.tpl'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+          
       - name: Build and push image to ACR
         run: | 
           echo "You could build and push an image to ACR here by using the following commented commands"
